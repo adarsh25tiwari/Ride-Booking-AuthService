@@ -1,38 +1,65 @@
 package com.adarsh.RideBooking_AuthService.controllers;
 
-import com.adarsh.RideBooking_AuthService.dtos.SignupRequestDriverDto;
-import com.adarsh.RideBooking_AuthService.dtos.SignupRequestPassengerDto;
-import com.adarsh.RideBooking_AuthService.dtos.SignupResponseDriverDto;
-import com.adarsh.RideBooking_AuthService.dtos.SignupResponsePassengerDto;
+import com.adarsh.RideBooking_AuthService.dtos.*;
 import com.adarsh.RideBooking_AuthService.service.AuthService;
+import com.adarsh.RideBooking_AuthService.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
-    public  AuthController(AuthService authService) {
+    private final AuthenticationManager authenticationManager;
+    private final JwtService  jwtService;
+
+    public  AuthController(AuthService authService,
+                           AuthenticationManager authenticationManager,
+                           JwtService jwtService) {
         this.authService = authService;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
 
-    @PostMapping("/passenger")
+    @PostMapping("/signup/passenger")
     public ResponseEntity<SignupResponsePassengerDto> signupPassenger(@RequestBody SignupRequestPassengerDto signupRequestPassengerDto) {
        SignupResponsePassengerDto response =  this.authService.signupP(signupRequestPassengerDto);
         return new  ResponseEntity<>(response, HttpStatus.CREATED);
 
     }
 
-    @PostMapping("/driver")
+    @PostMapping("/signup/driver")
     public ResponseEntity<SignupResponseDriverDto> signupDriver(@RequestBody SignupRequestDriverDto signupRequestDriverDto) {
         SignupResponseDriverDto response = this.authService.signupD(signupRequestDriverDto);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+
+
+    @PostMapping("/login/passenger")
+    public ResponseEntity<?> loginPassenger(@RequestBody AuthRequestDto  authRequestDto) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(), authRequestDto.getPassword())
+        );
+        if (authentication.isAuthenticated()) {
+            String jwtToken = jwtService.createJwtToken(authRequestDto.getEmail());
+            return new ResponseEntity<>(jwtToken, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>("Authentication failed", HttpStatus.UNAUTHORIZED );
     }
 }
