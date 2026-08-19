@@ -4,11 +4,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.sql.Date;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -26,21 +28,27 @@ public class JwtService {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createJwtToken(Map<String, Object> claims,String email) {
-        Date expireDate = new Date(System.currentTimeMillis() + expiry);
+    public String createJwtToken(UserDetails  userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(
+                "roles",
+                userDetails.getAuthorities()
+                        .stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList());
 
         return Jwts.builder()
                 .claims(claims)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(expireDate)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(getSigningKey())
-                .subject(email)
                 .compact();
     }
 
-    public String createJwtToken(String email) {
+   /* public String createJwtToken(String email) {
         return createJwtToken(new HashMap<>(), email);
-    }
+    }*/
 
     // check token expiry
 

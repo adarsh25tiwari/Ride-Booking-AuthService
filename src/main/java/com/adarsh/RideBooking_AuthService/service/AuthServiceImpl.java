@@ -1,13 +1,15 @@
 package com.adarsh.RideBooking_AuthService.service;
 
-import com.adarsh.RideBooking_AuthService.dtos.SignupRequestDriverDto;
-import com.adarsh.RideBooking_AuthService.dtos.SignupRequestPassengerDto;
-import com.adarsh.RideBooking_AuthService.dtos.SignupResponseDriverDto;
-import com.adarsh.RideBooking_AuthService.dtos.SignupResponsePassengerDto;
+import com.adarsh.RideBooking_AuthService.dtos.*;
 import com.adarsh.RideBooking_AuthService.repository.DriverRepository;
 import com.adarsh.RideBooking_AuthService.repository.PassengerRepository;
+import com.adarsh.RideBooking_AuthService.securityHelper.AuthUserDetails;
 import com.adarsh.RideBooking_EntityService.models.Driver;
 import com.adarsh.RideBooking_EntityService.models.Passenger;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +19,20 @@ public class AuthServiceImpl implements AuthService{
     private final PassengerRepository passengerRepository;
     private final DriverRepository driverRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService  jwtService;
 
-    public AuthServiceImpl(PassengerRepository passengerRepository, DriverRepository driverRepository,
-                           BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public AuthServiceImpl(PassengerRepository passengerRepository,
+                           DriverRepository driverRepository,
+                           BCryptPasswordEncoder bCryptPasswordEncoder,
+                           AuthenticationManager authenticationManager,
+                           JwtService jwtService) {
 
         this.passengerRepository = passengerRepository;
         this.driverRepository = driverRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -52,5 +61,30 @@ public class AuthServiceImpl implements AuthService{
 
        Driver newDriver =  driverRepository.save(driver);
         return SignupResponseDriverDto.fromDriver(newDriver);
+    }
+
+
+    @Override
+    public AuthResponseDto login(AuthRequestDto authRequestDto) {
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                authRequestDto.getEmail(),
+                                authRequestDto.getPassword()
+                        )
+                );
+        AuthUserDetails userDetails = (AuthUserDetails) authentication.getPrincipal();
+        String jwtToken = jwtService.createJwtToken(userDetails);
+        String role = userDetails.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse(null);
+
+        role = role.replace("ROLE_", "");
+
+        return new AuthResponseDto(jwtToken, role);
+
+
     }
 }

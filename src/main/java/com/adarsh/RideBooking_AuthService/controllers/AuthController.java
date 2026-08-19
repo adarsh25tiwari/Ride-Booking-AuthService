@@ -22,17 +22,10 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtService  jwtService;
 
-    public  AuthController(AuthService authService,
-                           AuthenticationManager authenticationManager,
-                           JwtService jwtService) {
+    public  AuthController(AuthService authService) {
         this.authService = authService;
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
     }
-
 
     @PostMapping("/signup/passenger")
     public ResponseEntity<SignupResponsePassengerDto> signupPassenger(@RequestBody SignupRequestPassengerDto signupRequestPassengerDto) {
@@ -49,17 +42,9 @@ public class AuthController {
     }
 
 
-
-    @PostMapping("/login/passenger")
-    public ResponseEntity<?> loginPassenger(@RequestBody AuthRequestDto  authRequestDto) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequestDto.getEmail(), authRequestDto.getPassword())
-        );
-        if (authentication.isAuthenticated()) {
-            String jwtToken = jwtService.createJwtToken(authRequestDto.getEmail());
-            return new ResponseEntity<>(jwtToken, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>("Authentication failed", HttpStatus.UNAUTHORIZED );
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto  authRequestDto) {
+        AuthResponseDto response = this.authService.login(authRequestDto);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
