@@ -31,7 +31,7 @@ public class SecurityConfiguration  {
             .authorizeRequests(auth ->
                            auth
                                .requestMatchers("/api/v1/auth/signup/*").permitAll()
-                               .requestMatchers("/api/v1/auth/login/*").permitAll()
+                               .requestMatchers( "/api/v1/auth/login","/api/v1/auth/validate").permitAll()
                                .requestMatchers("/driver/**").hasRole("DRIVER")
                                .requestMatchers("/passenger/**").hasRole("PASSENGER"))
             .csrf(AbstractHttpConfigurer::disable)

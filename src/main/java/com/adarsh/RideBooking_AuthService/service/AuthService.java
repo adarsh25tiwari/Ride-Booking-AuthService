@@ -9,4 +9,5 @@ public interface AuthService {
     public SignupResponsePassengerDto signupP(SignupRequestPassengerDto signupRequestPassengerDto);
     public SignupResponseDriverDto signupD(SignupRequestDriverDto signupRequestDriverDto);
     public AuthResponseDto login(AuthRequestDto authRequestDto);
+    TokenValidationResponseDto validateToken(String token);
 }

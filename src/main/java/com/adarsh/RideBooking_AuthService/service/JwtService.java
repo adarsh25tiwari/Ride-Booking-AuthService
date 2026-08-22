@@ -1,4 +1,6 @@
 package com.adarsh.RideBooking_AuthService.service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,6 +19,7 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
     @Value("${jwt.expiry}")
     private int expiry;
@@ -81,9 +84,19 @@ public class JwtService {
     }
 
 
-    private Boolean validateToken(String token, String email){
-        final String userEmail = extractEmail(token);
-        return email.equals(userEmail) && !isTokenExpired(token);
+    public Boolean validateToken(String token){
+
+        /*final String userEmail = extractEmail(token);
+        return email.equals(userEmail) && !isTokenExpired(token);*/
+        try {
+            log.debug("Validating JWT");
+            extractAllPayloads(token);
+            return true;
+        } catch (Exception e) {
+            log.debug("JWT validation failed: {}", e.getMessage());
+            return false;
+        }
+
     }
 
 

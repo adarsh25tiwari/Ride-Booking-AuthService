@@ -47,4 +47,21 @@ public class AuthController {
         AuthResponseDto response = this.authService.login(authRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/validate")
+    public ResponseEntity<TokenValidationResponseDto> validateToken(
+            @RequestBody TokenValidationRequestDto requestDto){
+
+        /*test
+        System.out.println(
+                "Token received by Auth Service = "
+                        + requestDto.getToken()
+        );*/
+
+        return ResponseEntity.ok(
+                authService.validateToken(
+                        requestDto.getToken()
+                )
+        );
+    }
 }

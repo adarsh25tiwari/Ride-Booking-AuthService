@@ -13,6 +13,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AuthServiceImpl implements AuthService{
 
@@ -86,5 +88,27 @@ public class AuthServiceImpl implements AuthService{
         return new AuthResponseDto(jwtToken, role);
 
 
+    }
+
+    @Override
+    public TokenValidationResponseDto validateToken(String token) {
+
+        boolean valid = jwtService.validateToken(token);
+
+        if(!valid){
+            return TokenValidationResponseDto.builder()
+                    .valid(false)
+                    .build();
+        }
+        String email = jwtService.extractEmail(token);
+
+        return TokenValidationResponseDto.builder()
+                .valid(true)
+                .email(email)
+                .role(
+                        ((List<?>) jwtService.extractAllPayloads(token).get("roles"))
+                                .get(0)
+                                .toString())
+                .build();
     }
 }
