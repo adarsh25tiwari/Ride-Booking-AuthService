@@ -22,7 +22,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-	implementation'com.adarsh:RideBooking-EntityService:0.0.6-SNAPSHOT'
+	implementation'com.adarsh:RideBooking-EntityService:0.0.7-SNAPSHOT'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
